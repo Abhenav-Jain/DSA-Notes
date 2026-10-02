@@ -1,939 +1,243 @@
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🧩 LEETCODE 22 — GENERATE PARENTHESES
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# 22. Generate Parentheses
 
-📌 PATTERN
-Recursion + Backtracking + Constraint Pruning
+**Platform:** LeetCode · **Difficulty:** Medium · **Topic:** Recursion, Backtracking
 
-Goal:
-n pairs of parentheses ke saare valid combinations
-generate karne hain.
+## Problem
 
-Example:
+Given `n` pairs of parentheses, generate **all combinations of well-formed (balanced) parentheses**.
 
-n = 3
+```
+Input:  n = 3
+Output: ["((()))", "(()())", "(())()", "()(())", "()()()"]
 
-Output:
+Input:  n = 1
+Output: ["()"]
+```
 
-    ((()))
-    (()())
-    (())()
-    ()(())
-    ()()()
+**Constraints:** `1 <= n <= 8`
 
+---
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🧠 VALID PARENTHESES KI CONDITION
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## Key Observations
 
-For any prefix:
+- Every valid string has length `2n`: exactly `n` opening `(` and `n` closing `)` brackets.
+- A string is valid if, while scanning left to right:
+  1. the number of `)` **never exceeds** the number of `(` in any prefix, and
+  2. at the end, the number of `(` equals the number of `)`.
 
-    number of ')' 
-    kabhi bhi
-    number of '(' se zyada nahi hona chahiye.
+---
 
-And final string me:
+## Approach 1: Brute Force (Generate All + Validate)
 
-    open = n
-    close = n
+### Idea
 
+At each of the `2n` positions there are 2 choices: `(` or `)`.
+Generate **all `2^(2n)` strings** using recursion, and at the end check each one with a stack-based validity check. Keep only the valid ones.
 
-Example:
+### Recursion Tree (n = 1, length = 2)
 
-    (()())
+```
+                  ""
+             /          \
+          "("            ")"
+         /    \         /    \
+      "(("   "()"    ")("   "))"
+       ✗      ✓       ✗      ✗
+```
 
-Valid because har prefix me:
+All 4 strings are generated; only `"()"` passes the validity check.
 
-    open >= close
+### Validity Check (Stack)
 
+- On `(` → push.
+- On `)` → if the stack is empty, there's no matching `(`, so it's **invalid**; otherwise pop.
+- At the end → valid only if the stack is empty (no unmatched `(` left).
 
-Invalid:
+### Code
 
-    ())(
-
-At some point:
-
-    close > open
-
-So invalid.
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🥉 APPROACH 1 — BRUTE FORCE
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Idea:
-
-    Har position par:
-
-        '('
-        OR
-        ')'
-
-dono try karo.
-
-So total possible strings:
-
-    2^(2n)
-
-because total length = 2n.
-
-Har generated string ko end me:
-
-    valid_parenthesis()
-
-se check karo.
-
-
-Flow:
-
-    Generate ALL possible strings
-            ↓
-       2^(2n) candidates
-            ↓
-       Validate each
-            ↓
-       Keep valid ones
-
-
-Ye correct approach hai,
-but bahut saari invalid strings unnecessarily
-generate hoti hain.
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-💻 APPROACH 1
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+```cpp
 class Solution {
 public:
-
-    bool valid_parenthesis(string brackets) {
-
-        int count = 0;
-
-        for(char& ch : brackets) {
-
-            if(ch == '(') {
-                count++;
+    bool valid_parentheis(string s){
+        stack<char> st;
+        for(char c : s){
+            if(c == '('){
+                st.push(c);
             }
-
-            if(ch == ')') {
-                count--;
+            else if(!st.empty() && c == ')'){
+                st.pop();
             }
-
-            // More ')' than '('
-            if(count < 0) {
+            else if(st.empty() && c == ')'){
                 return false;
             }
         }
-
-        return count == 0;
+        return st.empty();
     }
-
-
-    void solve(
-        string curr,
-        int n,
-        vector<string>& ans
-    ) {
-
-        if(curr.size() == 2 * n) {
-
-            if(valid_parenthesis(curr)) {
-                ans.push_back(curr);
+    void solve(vector<string>& ans,string temp,int n,vector<char>& marker){
+        if(n == 0){
+            if(valid_parentheis(temp)){
+                ans.push_back(temp);
             }
-
             return;
         }
-
-        curr.push_back('(');
-        solve(curr, n, ans);
-        curr.pop_back();
-
-        curr.push_back(')');
-        solve(curr, n, ans);
-        curr.pop_back();
+        temp.push_back(marker[0]);
+        solve(ans,temp,n-1,marker);
+        temp.pop_back();
+        temp.push_back(marker[1]);
+        solve(ans,temp,n-1,marker);
     }
-
-
     vector<string> generateParenthesis(int n) {
-
-        string curr = "";
-
+        vector<char> marker = {'(',')'};
         vector<string> ans;
-
-        solve(curr, n, ans);
-
+        string temp = "";
+        int mark = 2 * n;
+        solve(ans,temp,mark,marker);
         return ans;
     }
 };
+```
 
+### Complexity
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔍 APPROACH 1 KA MAIN PROBLEM
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+| | |
+|---|---|
+| **Time** | `O(2^(2n) · n)`: `2^(2n)` strings, each validated in `O(n)` |
+| **Space** | `O(n)` recursion depth (`2n`) + `O(n)` stack for validation (excluding output) |
 
-Suppose:
+### Drawback
 
-    n = 3
+It wastes a lot of work. A prefix like `")"` or `"())"` can **never** become valid, but we still extend it all the way to length `2n` before rejecting it.
 
-Ek branch:
+> 💡 The stack only ever stores `(`, so it can be replaced with a simple integer counter (`balance++` / `balance--`) for `O(1)` extra space.
 
-    ())(
+---
 
-already invalid ho gayi.
+## Approach 2: Optimized Backtracking (Prune Invalid Branches)
 
-But brute-force approach:
+### Idea
 
-    uske baad bhi recursively
-    complete length 6 tak banayega.
+Instead of generating everything and validating at the end, **stop a branch early** as soon as it becomes invalid. Track two counts:
 
-Then:
+- `open`: number of `(` used so far
+- `close`: number of `)` used so far
 
-    valid_parenthesis()
+Prune (return) when:
 
-finally usko reject karega.
+1. `open > n`: used more `(` than allowed.
+2. `close > open`: a `)` has no matching `(` (this prefix can never be fixed).
 
+At the end (`2n` characters placed), accept the string if `open == close`.
 
-Meaning:
+### Why the final check is enough
 
-    Invalid branch ko pehle hi identify
-    kar sakte the,
+When `n == 0`, the string has `2n` characters, so `open + close = 2n`. If `open == close`, both equal `n`.
+Every earlier prefix already passed the `close > open` check, so the string is balanced. No stack is needed.
 
-but humne usko unnecessarily generate kiya.
+### Recursion Tree (n = 2, pruned)
 
+```
+                         ""
+                /                 \
+             "("                  ")"  ✗ (close > open)
+           /      \
+        "(("       "()"
+       /    \      /    \
+   "((("✗  "(()"  "()("  "())"✗
+   open>n   |      |
+          "(())" "()()"
+            ✓      ✓
+```
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🚀 APPROACH 2 — OPTIMIZED BACKTRACKING ⭐
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Invalid branches are cut off immediately instead of being expanded.
 
-Instead of:
+### Code
 
-    "Generate everything → validate"
-
-we do:
-
-    "Generate only valid possibilities"
-
-
-We maintain:
-
-    open
-    close
-
-
-Meaning:
-
-    open  = kitne '(' already use kiye
-    close = kitne ')' already use kiye
-
-
-Rules:
-
-    1. open < n
-
-       → '(' add kar sakte ho.
-
-
-    2. close < open
-
-       → ')' add kar sakte ho.
-
-
-That's it.
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔥 RULE 1 — `open < n`
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Total n opening brackets hi use karne hain.
-
-So:
-
-    if(open < n)
-
-then:
-
-    '('
-
-add kar sakte hain.
-
-
-If:
-
-    open == n
-
-then:
-
-    ❌ aur '(' nahi laga sakte.
-
-
-Example:
-
-    n = 3
-    open = 3
-
-Already:
-
-    ((()
-
-3 opening brackets use ho chuke.
-
-So another '(' invalid because total
-opening brackets 3 hi allowed hain.
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔥 RULE 2 — `close < open`
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Ye sabse important condition hai.
-
-Closing bracket tabhi add kar sakte hain
-jab currently available opening bracket ho.
-
-Condition:
-
-    close < open
-
-
-Why?
-
-Because agar:
-
-    close == open
-
-then saare currently opened brackets
-already close ho chuke hain.
-
-Agar ab ')' add kiya:
-
-    close > open
-
-which makes the sequence invalid.
-
-
-Example:
-
-    curr = "(("
-
-    open  = 2
-    close = 0
-
-')' allowed.
-
-After:
-
-    "(()"
-
-    open  = 2
-    close = 1
-
-Another ')' allowed.
-
-After:
-
-    "(())"
-
-    open  = 2
-    close = 2
-
-Another ')' ❌
-
-because:
-
-    close < open
-
-false.
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-💻 APPROACH 2 — OPTIMIZED
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+```cpp
 class Solution {
 public:
-
-    void solve(
-        string& curr,
-        int n,
-        vector<string>& ans,
-        int open,
-        int close
-    ) {
-
-        // Complete valid sequence
-        if(curr.size() == 2 * n) {
-
-            ans.push_back(curr);
-
+    void solve(vector<string>& ans,string temp,int n,vector<char>& marker,int open,int close,int nole){
+        if(n == 0){
+            if(open == close){
+                ans.push_back(temp);
+            }
             return;
         }
-
-
-        // Add '('
-        if(open < n) {
-
-            curr.push_back('(');
-
-            solve(
-                curr,
-                n,
-                ans,
-                open + 1,
-                close
-            );
-
-            curr.pop_back();
+        if(open > nole){
+            return;
         }
-
-
-        // Add ')'
-        if(close < open) {
-
-            curr.push_back(')');
-
-            solve(
-                curr,
-                n,
-                ans,
-                open,
-                close + 1
-            );
-
-            curr.pop_back();
+        if(close > open){
+            return;
         }
+        temp.push_back(marker[0]);
+        solve(ans,temp,n-1,marker,open+1,close,nole);
+        temp.pop_back();
+        temp.push_back(marker[1]);
+        solve(ans,temp,n-1,marker,open,close+1,nole);
     }
-
-
     vector<string> generateParenthesis(int n) {
-
-        string curr = "";
-
+        vector<char> marker = {'(',')'};
         vector<string> ans;
-
-        solve(
-            curr,
-            n,
-            ans,
-            0,
-            0
-        );
-
+        string temp = "";
+        int mark = 2 * n;
+        int open = 0;
+        int close = 0;
+        int nole = n;
+        solve(ans,temp,mark,marker,open,close,nole);
         return ans;
     }
 };
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🧠 MOST IMPORTANT OPTIMIZATION
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Approach 1:
-
-    Build:
-        '('
-        ')'
-
-    blindly
-
-    ↓
-
-    Validate later
-
-
-Approach 2:
-
-    '(' only if:
-
-        open < n
-
-
-    ')' only if:
-
-        close < open
-
-
-    ↓
-
-    Invalid branches are NEVER generated.
-
-
-This is called:
-
-    PRUNING
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🌳 RECURSION TREE INTUITION
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-At every point:
-
-              curr
-             /    \
-           '('    ')'
-            ↓       ↓
-        if valid  if valid
-
-
-But Approach 2 me:
-
-    ')' branch tabhi create hogi
-    jab:
-
-        close < open
-
-
-So invalid branches
-tree se immediately cut ho jaati hain.
-
-
-Example:
-
-    ""
-
-    ↓
-
-    "("
-
-    ↓
-
-    "(("
-
-    ↓
-
-    "(()"
-
-    ↓
-
-    "(())"
-
-    ↓
-
-    "(())("
-
-    ↓
-
-    "(())()"
-
-Valid result.
-
-
-But:
-
-    "())"
-
-ke baad:
-
-    ")"
-
-branch kabhi generate hi nahi hoti.
-
-That's pruning.
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔄 BACKTRACKING KA ROLE
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Pattern:
-
-    choose
-      ↓
-    recurse
-      ↓
-    undo
-
-
-For '(':
-
-    curr.push_back('(')
-
-    solve(...)
-
-    curr.pop_back()
-
-
-For ')':
-
-    curr.push_back(')')
-
-    solve(...)
-
-    curr.pop_back()
-
-
-This:
-
-    push → recurse → pop
-
-is the standard backtracking template.
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🧠 WHY `curr` REFERENCE HAI?
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Approach 2:
-
-    string& curr
-
-Use kar raha hai.
-
-So same string ko modify karke:
-
-    push
-    recurse
-    pop
-
-kiya ja raha hai.
-
-This avoids creating a new string
-on every recursive call.
-
-Approach 1 me:
-
-    string curr
-
-pass by value hai.
-
-So every recursive call me string copy hoti hai.
-
-
-Therefore Approach 2 is cleaner and more
-efficient in terms of recursion-state handling.
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-⚠️ APPROACH 2 ME VALIDATION KYU NAHI HAI?
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Because constraints already guarantee validity.
-
-We only allow:
-
-    '(' when open < n
-
-and:
-
-    ')' when close < open
-
-
-Therefore every generated complete string
-automatically satisfies:
-
-    open = n
-    close = n
-
-and:
-
-    close never exceeds open.
-
-
-So:
-
-    valid_parenthesis()
-
-ki zarurat nahi.
-
-
-This is the core optimization.
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🧪 DRY RUN — n = 2
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Start:
-
-    curr = ""
-    open = 0
-    close = 0
-
-
-Only '(' allowed because:
-
-    open < n
-
-So:
-
-    "("
-
-
-Now:
-
-    open = 1
-    close = 0
-
-
-Both possible:
-
-    '('
-    ')'
-
-
-Take '(':
-
-    "(("
-
-    open = 2
-    close = 0
-
-
-Cannot add '(':
-
-    open < n ❌
-
-
-Can add ')':
-
-    "(()"
-
-    open = 2
-    close = 1
-
-
-Again ')':
-
-    "(())"
-
-    open = 2
-    close = 2
-
-
-Length = 4
-
-→ add answer.
-
-
-Backtrack and explore:
-
-    "()"
-
-
-Then:
-
-    "()()"
-
-Second answer.
-
-
-Final:
-
-    ["(())", "()()"]
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📌 KEY INVARIANT
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-At EVERY recursive call:
-
-    0 <= close <= open <= n
-
-
-This single invariant guarantees
-that generated sequences remain valid.
-
-
-Think:
-
-    open
-      ↓
-    cannot exceed n
-
-    close
-      ↓
-    cannot exceed open
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-⚖️ APPROACH 1 VS APPROACH 2
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-APPROACH 1 — BRUTE FORCE
-
-    Generate every possible
-    parenthesis string
-
-        ↓
-
-    2^(2n) possibilities
-
-        ↓
-
-    Validate each
-
-
-    ❌ Generates invalid states
-    ❌ Validation required
-    ❌ More work
-
-
-APPROACH 2 — BACKTRACKING + PRUNING
-
-    Generate '(' only when:
-
-        open < n
-
-    Generate ')' only when:
-
-        close < open
-
-        ↓
-
-    Only valid states generated
-
-
-    ✅ No final validation
-    ✅ Invalid branches pruned early
-    ✅ Much cleaner
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-⏱️ COMPLEXITY
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Number of valid answers is the
-nth Catalan number:
-
-    Cn = 1/(n+1) × C(2n,n)
-
-
-So any solution that outputs all valid
-strings must spend at least:
-
-    O(Cn × n)
-
-time just to produce the output.
-
-
-Approach 2 therefore has output-sensitive
-complexity roughly:
-
-    O(Cn × n)
-
-
-Space:
-
-    Recursion depth:
-        O(n)
-
-    Current string:
-        O(n)
-
-    Output:
-        O(Cn × n)
-
-
-If output storage is excluded:
-
-    Auxiliary space → O(n)
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🎯 INTERVIEW TRIGGER
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Agar problem bole:
-
-    "Generate all valid combinations"
-
-and kuch constraints diye hon jo invalid
-choices ko identify kar sakte hain:
-
-    → Backtracking
-    → Maintain state
-    → Prune invalid branches
-
-
-For this problem:
-
-    open < n
-        → add '('
-
-
-    close < open
-        → add ')'
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔥 ONE-LINE MEMORY TRICK
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-"Open ko n tak le jao,
-but close ko kabhi open se zyada mat hone do."
-
-
-Or:
-
-    '(' → open < n
-    ')' → close < open
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🏆 PATTERN CONNECTION
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Brute Force:
-
-    Generate
-       ↓
-    Validate
-
-
-Optimized Backtracking:
-
-    Choose
-       ↓
-    Check constraint
-       ↓
-    Recurse
-       ↓
-    Undo
-
-
-This is the bigger lesson:
-
-    ❌ Generate invalid possibilities
-       and reject later
-
-    ✅ Reject invalid choices BEFORE recursion
-
-
-That is:
-
-    BACKTRACKING + PRUNING
-
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-⭐ FINAL VERDICT
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Approach 1:
-    🟡 Useful for understanding brute force
-    ✅ Correct
-    ❌ Not optimal
-
-
-Approach 2:
-    🟢 MUST KNOW
-    ✅ Correct
-    ✅ Backtracking
-    ✅ State tracking
-    ✅ Pruning
-    ✅ Interview preferred
-
-
-Main concept to remember:
-
-    open < n
-    close < open
-
-        ↓
-
-    Every generated string is valid.
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+### Complexity
+
+| | |
+|---|---|
+| **Time** | `O(4^n / √n)`: proportional to the number of valid results (the n-th Catalan number) times their length |
+| **Space** | `O(n)` recursion depth (excluding output) |
+
+---
+
+## Cleaner Version (Same Logic)
+
+Small refinements:
+
+- Check **before** recursing, so dead branches are never called.
+- Pass `temp` **by reference** to avoid copying the string on every call.
+- `marker` and the `n` countdown aren't needed (`temp.size()` tells us the length).
+
+```cpp
+class Solution {
+public:
+    void solve(vector<string>& ans, string& temp, int open, int close, int n) {
+        if (temp.size() == 2 * n) { ans.push_back(temp); return; }
+        if (open < n)     { temp.push_back('('); solve(ans, temp, open + 1, close, n); temp.pop_back(); }
+        if (close < open) { temp.push_back(')'); solve(ans, temp, open, close + 1, n); temp.pop_back(); }
+    }
+    vector<string> generateParenthesis(int n) {
+        vector<string> ans;
+        string temp;
+        solve(ans, temp, 0, 0, n);
+        return ans;
+    }
+};
+```
+
+---
+
+## Comparison
+
+| | Brute Force | Optimized Backtracking |
+|---|---|---|
+| Strategy | Generate all, validate at end | Prune invalid prefixes early |
+| Strings explored | All `2^(2n)` | Only valid prefixes |
+| Validation | Stack, `O(n)` per string | `open` / `close` counters, `O(1)` |
+| Time | `O(2^(2n) · n)` | `O(4^n / √n)` |
+| Space | `O(n)` | `O(n)` |
+
+## Takeaways
+
+- **Brute force → backtracking:** if you can tell a partial answer is already invalid, stop exploring it.
+- Rules for placing brackets:
+  - add `(` only if `open < n`
+  - add `)` only if `close < open`
+- Use counters instead of a stack when there's only one kind of bracket.
