@@ -1,57 +1,78 @@
 # LeetCode 525 — Contiguous Array
 
-> **Pattern:** Prefix Sum + HashMap  
 > **Difficulty:** Medium  
-> **Core Technique:** Transform the array + Store first occurrence of prefix sum  
-> **Optimal Time Complexity:** \(O(n)\) expected  
-> **Auxiliary Space Complexity:** \(O(n)\)
+> **Pattern:** Prefix Sum + HashMap  
+> **Core Concepts:** Array Transformation, Prefix Sum, First Occurrence  
+> **Time Complexity:** O(n) expected  
+> **Space Complexity:** O(n)
 
 ---
 
-# 1. Problem Statement
+## 1. Problem Statement
 
 Given a binary array `nums` containing only `0` and `1`, find the maximum length of a contiguous subarray with an equal number of `0`s and `1`s.
 
 ### Example 1
 
+**Input:**
+
 ```cpp
-Input: nums = [0, 1]
-Output: 2
+nums = [0, 1]
 ```
 
-Explanation: The entire array contains one zero and one one.
+**Output:**
+
+```cpp
+2
+```
+
+**Explanation:** The entire array contains one zero and one one.
 
 ### Example 2
 
+**Input:**
+
 ```cpp
-Input: nums = [0, 1, 0]
-Output: 2
+nums = [0, 1, 0]
 ```
 
-Explanation: The subarray `[0, 1]` or `[1, 0]` contains equal numbers of zeros and ones.
+**Output:**
+
+```cpp
+2
+```
+
+**Explanation:** The subarray `[0, 1]` or `[1, 0]` contains equal numbers of zeros and ones.
 
 ### Example 3
 
+**Input:**
+
 ```cpp
-Input: nums = [0, 1, 0, 1, 1, 0]
-Output: 6
+nums = [0, 1, 0, 1, 1, 0]
 ```
 
-Explanation: The entire array contains three zeros and three ones.
+**Output:**
 
-### What are we actually asked to find?
+```cpp
+6
+```
 
-We need:
+**Explanation:** The entire array contains three zeros and three ones.
 
-- A contiguous subarray.
-- Equal number of zeros and ones.
-- Maximum possible length.
+### What are we required to find?
 
-The word **maximum length** is important. It determines what information we should store in our HashMap.
+We need to identify:
+
+1. A contiguous subarray.
+2. Equal numbers of zeros and ones.
+3. The maximum possible length.
+
+The important observation is that we need the **maximum length**, not the number of valid subarrays. This determines what we should store in our HashMap.
 
 ---
 
-# 2. Brute Force Approach
+## 2. Brute Force Approach
 
 The simplest approach is to generate every possible subarray and count its zeros and ones.
 
@@ -62,9 +83,9 @@ The simplest approach is to generate every possible subarray and count its zeros
 3. Extend the subarray using another loop.
 4. Update the zero or one count.
 5. Whenever `zero == one`, calculate the subarray length.
-6. Maintain the maximum length.
+6. Update the maximum length.
 
-### C++ Code
+### C++ Implementation
 
 ```cpp
 class Solution {
@@ -99,30 +120,28 @@ public:
 
 ### Complexity Analysis
 
-There are \(O(n^2)\) possible subarrays.
-
-Each subarray is processed incrementally in constant time per extension.
+There are O(n²) possible subarrays.
 
 | Complexity | Value |
 |---|---|
-| Time | \(O(n^2)\) |
-| Auxiliary Space | \(O(1)\) |
+| Time | O(n²) |
+| Auxiliary Space | O(1) |
 
-**Limitation:** We repeatedly examine information about subarrays. We need a way to reuse previously calculated prefix information.
+**Limitation:** We examine every possible subarray. We need a way to reuse information from previously calculated prefixes.
 
 This leads us to Prefix Sum + HashMap.
 
 ---
 
-# 3. The Core Observation — Transform the Array
+## 3. Core Observation — Transform the Array
 
 This is the most important step in the entire problem.
 
-We are looking for a subarray having:
+We are looking for a subarray satisfying:
 
-\[
+$$
 \text{Number of Zeros} = \text{Number of Ones}
-\]
+$$
 
 Instead of maintaining two separate counts, we can transform the array.
 
@@ -135,13 +154,15 @@ Replace:
 
 For example:
 
+**Original Array:**
+
 ```text
-Original Array:
-
 [0, 1, 0, 1, 1, 0]
+```
 
-Transformed Array:
+**Transformed Array:**
 
+```text
 [-1, 1, -1, 1, 1, -1]
 ```
 
@@ -149,40 +170,40 @@ Now consider a subarray containing two zeros and two ones.
 
 Its transformed sum becomes:
 
-\[
-(-1) + 1 + (-1) + 1 = 0
-\]
+$$
+(-1)+1+(-1)+1=0
+$$
 
-Why does this work?
+### Why does this transformation work?
 
 Let:
 
-- \(Z\) = number of zeros.
-- \(O\) = number of ones.
+- $Z$ = Number of zeros.
+- $O$ = Number of ones.
 
 After transformation:
 
-\[
-\text{Subarray Sum} = O-Z
-\]
+$$
+\text{Subarray Sum}=O-Z
+$$
 
 For a balanced subarray:
 
-\[
+$$
 O=Z
-\]
+$$
 
 Therefore:
 
-\[
+$$
 O-Z=0
-\]
+$$
 
-Hence:
+Hence, we get the important equivalence:
 
-\[
+$$
 \boxed{\text{Equal Zeros and Ones} \iff \text{Transformed Subarray Sum}=0}
-\]
+$$
 
 **Important conclusion:**
 
@@ -194,115 +215,107 @@ This is a classic Prefix Sum problem.
 
 ---
 
-# 4. Understanding Prefix Sum
+## 4. Understanding Prefix Sum
 
 A prefix sum represents the cumulative sum of elements from the beginning of an array up to a particular index.
 
 For the transformed array:
 
 ```text
-Array:       [-1, 1, -1, 1, 1, -1]
-
-Index:         0  1   2  3  4   5
+Array: [-1, 1, -1, 1, 1, -1]
 ```
 
 The prefix sums are:
 
-```text
-Index:         0   1   2   3   4   5
-Element:      -1   1  -1   1   1  -1
-Prefix Sum:   -1   0  -1   0   1   0
-```
+| Index | 0 | 1 | 2 | 3 | 4 | 5 |
+|---|---:|---:|---:|---:|---:|---:|
+| Element | -1 | 1 | -1 | 1 | 1 | -1 |
+| Prefix Sum | -1 | 0 | -1 | 0 | 1 | 0 |
 
-Mathematically, define:
+Mathematically, define the prefix sum as:
 
-\[
+$$
 P[i]=\sum_{x=0}^{i} A[x]
-\]
+$$
 
-Here, \(A\) represents the transformed array.
+Here, $A$ represents the transformed array.
 
 Notice that some prefix sums repeat:
 
-```text
-Prefix Sum -1 occurs at indices 0 and 2.
-
-Prefix Sum  0 occurs at indices 1, 3 and 5.
-```
+- Prefix sum `-1` occurs at indices `0` and `2`.
+- Prefix sum `0` occurs at indices `1`, `3`, and `5`.
 
 This repetition is the key to solving the problem.
 
 ---
 
-# 5. Mathematical Derivation — Why Repeated Prefix Sums Work
+## 5. Mathematical Derivation — Why Repeated Prefix Sums Work
 
-Suppose the prefix sum at two indices \(i\) and \(j\) is equal, where:
+Suppose the prefix sum at two indices $i$ and $j$ is equal, where:
 
-\[
+$$
 i<j
-\]
+$$
 
 Then:
 
-\[
+$$
 P[i]=P[j]
-\]
+$$
 
-We know that the sum of the subarray from index \(i+1\) to index \(j\) is:
+We know that the sum of the subarray from index $i+1$ to index $j$ is:
 
-\[
+$$
 \text{Subarray Sum}=P[j]-P[i]
-\]
+$$
 
-Since the two prefix sums are equal:
+Since both prefix sums are equal:
 
-\[
+$$
 P[j]-P[i]=0
-\]
+$$
 
 Therefore:
 
-\[
+$$
 \boxed{\text{Subarray Sum}=0}
-\]
+$$
 
-Remember that we transformed:
+Remember our transformation:
 
-\[
+$$
 0\rightarrow -1
-\]
+$$
 
-\[
+$$
 1\rightarrow +1
-\]
+$$
 
 A zero-sum subarray in the transformed array means:
 
-\[
+$$
 \text{Number of Zeros}=\text{Number of Ones}
-\]
+$$
 
 Thus:
 
-\[
+$$
 \boxed{P[i]=P[j]\implies\text{Balanced Subarray}}
-\]
+$$
 
 The length of this balanced subarray is:
 
-\[
+$$
 \boxed{\text{Length}=j-i}
-\]
+$$
 
-### The most important insight
+### The Most Important Insight
 
-**If the same prefix sum occurs at two different indices, the subarray between those indices has an equal number of zeros and ones.**
-
-This is the mathematical foundation of LC 525.
+If the same prefix sum occurs at two different indices, the subarray between those indices has an equal number of zeros and ones.
 
 ---
 
-# 6. Why Do We Need a HashMap?
+## 6. Why Do We Need a HashMap?
 
 We need to identify whether a prefix sum has appeared previously.
 
@@ -312,19 +325,19 @@ We can use:
 unordered_map<int, int> mp;
 ```
 
-Our HashMap will store:
+Our HashMap stores:
 
 | Key | Value |
 |---|---|
-| Prefix Sum | First occurrence index |
+| Prefix Sum | First Occurrence Index |
 
 For example:
 
 ```text
 mp = {
-    0  : -1,
-   -1  :  0,
-    1  :  4
+     0 : -1,
+    -1 :  0,
+     1 :  4
 }
 ```
 
@@ -334,7 +347,7 @@ This means:
 - Prefix sum `-1` first appeared at index `0`.
 - Prefix sum `1` first appeared at index `4`.
 
-But why store the **first occurrence** instead of the frequency?
+### Why store the first occurrence instead of frequency?
 
 Because the question asks for maximum length.
 
@@ -349,29 +362,29 @@ At index `7`, possible subarray lengths are:
 
 Using index `1`:
 
-\[
+$$
 7-1=6
-\]
+$$
 
 Using index `4`:
 
-\[
+$$
 7-4=3
-\]
+$$
 
 The earliest occurrence gives the longest subarray.
 
 Therefore:
 
-\[
-\boxed{\text{Store the first occurrence of every prefix sum}}
-\]
+$$
+\boxed{\text{Store the First Occurrence of Every Prefix Sum}}
+$$
 
 **Never overwrite the first occurrence.**
 
 ---
 
-# 7. Why Do We Initialize mp[0] = -1?
+## 7. Why Do We Initialize `mp[0] = -1`?
 
 This is one of the most important implementation details.
 
@@ -389,25 +402,21 @@ After transformation:
 
 Prefix sums:
 
-```text
-Index:        0   1
-Prefix Sum:  -1   0
-```
+| Index | 0 | 1 |
+|---|---:|---:|
+| Element | -1 | 1 |
+| Prefix Sum | -1 | 0 |
 
 At index `1`, the prefix sum becomes zero.
 
-The entire array is balanced, so the answer should be:
-
-\[
-2
-\]
+The entire array is balanced, so the answer should be `2`.
 
 But how do we calculate this using the same prefix-sum logic?
 
 We treat the empty prefix as having:
 
-- Prefix sum = `0`
-- Index = `-1`
+- Prefix sum = `0`.
+- Index = `-1`.
 
 Therefore:
 
@@ -417,19 +426,19 @@ mp[0] = -1;
 
 Now:
 
-\[
+$$
 \text{Length}=1-(-1)=2
-\]
+$$
 
 This correctly counts subarrays that begin at index zero.
 
-### General rule
+### General Rule
 
-Whenever we need to calculate the length of a subarray whose prefix sum equals an initial target, initializing the appropriate prefix state before index zero can help handle subarrays starting at index zero.
+Initializing the empty prefix before index zero helps us handle valid subarrays that start at the beginning of the array.
 
 ---
 
-# 8. Optimal Algorithm
+## 8. Optimal Algorithm
 
 Now we have all the required observations.
 
@@ -448,7 +457,7 @@ Now we have all the required observations.
 
 ---
 
-# 9. Optimized C++ Code
+## 9. Optimized C++ Implementation
 
 ```cpp
 class Solution {
@@ -497,7 +506,7 @@ public:
 
 ---
 
-# 10. Detailed Line-by-Line Explanation
+## 10. Detailed Line-by-Line Explanation
 
 ### A. Initialization
 
@@ -515,7 +524,7 @@ mp[0] = -1;
 - `mp` stores the first index of every prefix sum.
 - `mp[0] = -1` handles subarrays starting at index zero.
 
-### B. Transform the current element
+### B. Transform the Current Element
 
 ```cpp
 if(nums[i] == 0) {
@@ -528,13 +537,13 @@ else if(nums[i] == 1) {
 
 We maintain:
 
-\[
+$$
 sum=\text{Number of Ones}-\text{Number of Zeros}
-\]
+$$
 
-If the balance becomes equal at two different positions, the elements between them form a balanced subarray.
+If the balance becomes equal at two different prefix positions, the elements between them form a balanced subarray.
 
-### C. Check whether the prefix sum exists
+### C. Check Whether the Prefix Sum Exists
 
 ```cpp
 if(mp.find(sum) != mp.end()) {
@@ -546,27 +555,27 @@ Suppose the same prefix sum occurred earlier at index `j`.
 
 Then:
 
-\[
+$$
 P[i]=P[j]
-\]
+$$
 
 Therefore:
 
-\[
+$$
 P[i]-P[j]=0
-\]
+$$
 
 The current subarray has equal zeros and ones.
 
 Its length is:
 
-\[
+$$
 i-j
-\]
+$$
 
 We update `max_len` using this length.
 
-### D. Store only the first occurrence
+### D. Store the First Occurrence
 
 ```cpp
 else {
@@ -582,7 +591,7 @@ This is essential for maximizing the length.
 
 ---
 
-# 11. Complete Dry Run
+## 11. Complete Dry Run
 
 Consider:
 
@@ -617,23 +626,19 @@ nums[0] = 0
 
 Transform:
 
-\[
+$$
 sum=0-1=-1
-\]
+$$
 
 Prefix sum `-1` does not exist.
 
 Store:
 
-```text
-mp[-1] = 0
+```cpp
+mp[-1] = 0;
 ```
 
-Maximum length:
-
-```text
-max_len = 0
-```
+Maximum length remains `0`.
 
 ### Iteration 2 — Index 1
 
@@ -645,22 +650,22 @@ nums[1] = 1
 
 Update:
 
-\[
+$$
 sum=-1+1=0
-\]
+$$
 
 Prefix sum `0` already exists at index `-1`.
 
 Calculate:
 
-\[
+$$
 Length=1-(-1)=2
-\]
+$$
 
 Update:
 
-```text
-max_len = 2
+```cpp
+max_len = 2;
 ```
 
 ### Iteration 3 — Index 2
@@ -673,23 +678,19 @@ nums[2] = 0
 
 Update:
 
-\[
+$$
 sum=0-1=-1
-\]
+$$
 
 Prefix sum `-1` already exists at index `0`.
 
 Calculate:
 
-\[
+$$
 Length=2-0=2
-\]
+$$
 
-Maximum remains:
-
-```text
-max_len = 2
-```
+Maximum remains `2`.
 
 Do not overwrite the first occurrence of `-1`.
 
@@ -703,22 +704,22 @@ nums[3] = 1
 
 Update:
 
-\[
+$$
 sum=-1+1=0
-\]
+$$
 
 Prefix sum `0` already exists at index `-1`.
 
 Calculate:
 
-\[
+$$
 Length=3-(-1)=4
-\]
+$$
 
 Update:
 
-```text
-max_len = 4
+```cpp
+max_len = 4;
 ```
 
 ### Iteration 5 — Index 4
@@ -731,23 +732,19 @@ nums[4] = 1
 
 Update:
 
-\[
+$$
 sum=0+1=1
-\]
+$$
 
 Prefix sum `1` does not exist.
 
 Store:
 
-```text
-mp[1] = 4
+```cpp
+mp[1] = 4;
 ```
 
-Maximum remains:
-
-```text
-max_len = 4
-```
+Maximum remains `4`.
 
 ### Iteration 6 — Index 5
 
@@ -759,22 +756,22 @@ nums[5] = 0
 
 Update:
 
-\[
+$$
 sum=1-1=0
-\]
+$$
 
 Prefix sum `0` already exists at index `-1`.
 
 Calculate:
 
-\[
+$$
 Length=5-(-1)=6
-\]
+$$
 
 Update:
 
-```text
-max_len = 6
+```cpp
+max_len = 6;
 ```
 
 ### Final Dry Run Table
@@ -788,15 +785,17 @@ max_len = 6
 | 4 | 1 | 1 | 4 (new) | — | 4 |
 | 5 | 0 | 0 | -1 | 6 | 6 |
 
-Final answer:
+**Final Output:**
 
-\[
+$$
 \boxed{6}
-\]
+$$
+
+The entire array contains three zeros and three ones.
 
 ---
 
-# 12. Proof of Correctness
+## 12. Proof of Correctness
 
 We can prove that the algorithm returns the maximum length of a balanced subarray.
 
@@ -804,57 +803,57 @@ We can prove that the algorithm returns the maximum length of a balanced subarra
 
 Every zero contributes `-1`, and every one contributes `+1`.
 
-For a subarray containing \(Z\) zeros and \(O\) ones:
+For a subarray containing $Z$ zeros and $O$ ones:
 
-\[
-SubarraySum=O-Z
-\]
+$$
+\text{Subarray Sum}=O-Z
+$$
 
 The subarray is balanced exactly when:
 
-\[
+$$
 O=Z
-\]
+$$
 
 Therefore:
 
-\[
-SubarraySum=0
-\]
+$$
+\text{Subarray Sum}=0
+$$
 
-### Lemma 2: Equal prefix sums identify a zero-sum subarray.
+### Lemma 2: Equal prefix sums identify a balanced subarray.
 
-For indices \(i<j\):
+For indices $i<j$:
 
-\[
-SubarraySum(i+1,j)=P[j]-P[i]
-\]
+$$
+\text{Subarray Sum}(i+1,j)=P[j]-P[i]
+$$
 
 If:
 
-\[
+$$
 P[j]=P[i]
-\]
+$$
 
-then:
+Then:
 
-\[
-SubarraySum(i+1,j)=0
-\]
+$$
+\text{Subarray Sum}(i+1,j)=0
+$$
 
 By Lemma 1, this subarray is balanced.
 
-### Lemma 3: The first occurrence produces the longest subarray for a given ending index.
+### Lemma 3: The First Occurrence Produces the Longest Subarray for a Given Ending Index.
 
-For a fixed current index \(j\), every earlier occurrence \(i\) of the same prefix sum produces a valid balanced subarray.
+For a fixed current index $j$, every earlier occurrence $i$ of the same prefix sum produces a valid balanced subarray.
 
 Its length is:
 
-\[
+$$
 j-i
-\]
+$$
 
-This length is maximized by choosing the smallest possible \(i\), which is the first occurrence.
+This length is maximized by choosing the smallest possible $i$, which is the first occurrence.
 
 ### Theorem
 
@@ -870,9 +869,9 @@ Therefore, the algorithm is correct.
 
 ---
 
-# 13. Complexity Analysis
+## 13. Complexity Analysis
 
-Let \(n\) be the number of elements in the array.
+Let $n$ be the number of elements in the array.
 
 ### Time Complexity
 
@@ -880,33 +879,35 @@ We traverse the array exactly once.
 
 Each iteration performs:
 
-- One transformation: \(O(1)\)
-- One HashMap lookup: \(O(1)\) expected
-- At most one HashMap insertion: \(O(1)\) expected
+- One transformation: O(1).
+- One HashMap lookup: O(1) expected.
+- At most one HashMap insertion: O(1) expected.
 
 Therefore:
 
-\[
-\boxed{O(n)\text{ Expected Time}}
-\]
+$$
+\boxed{\text{Expected Time Complexity}=O(n)}
+$$
 
-HashMap operations have a theoretical worst case of linear time under severe collisions, but expected constant-time operations give expected linear overall complexity.
+HashMap operations can theoretically degrade under severe collisions, but expected constant-time operations give expected linear overall complexity.
 
 ### Space Complexity
 
 In the worst case, all prefix sums can be different.
 
-The HashMap can therefore contain up to \(n+1\) entries.
+The HashMap can contain up to $n+1$ entries.
 
-\[
-\boxed{O(n)\text{ Auxiliary Space}}
-\]
+Therefore:
+
+$$
+\boxed{\text{Auxiliary Space Complexity}=O(n)}
+$$
 
 The algorithm does not modify the input array.
 
 ---
 
-# 14. Edge Cases and Their Analysis
+## 14. Edge Cases
 
 | Input | Output | Explanation |
 |---|---:|---|
@@ -917,7 +918,7 @@ The algorithm does not modify the input array.
 | `[0,0,0,0]` | 0 | No balanced subarray exists |
 | `[0,1,0,1]` | 4 | Entire array is balanced |
 
-### Important edge cases
+### Important Edge Cases
 
 **Case 1: Balanced subarray starts at index zero**
 
@@ -937,9 +938,9 @@ Always use the first occurrence. Never overwrite it.
 
 ---
 
-# 15. Common Mistakes and Interview Traps
+## 15. Common Mistakes and Interview Traps
 
-### Mistake 1: Not transforming zero into -1
+### Mistake 1: Not Transforming Zero Into Negative One
 
 Incorrect:
 
@@ -965,7 +966,7 @@ else {
 }
 ```
 
-### Mistake 2: Incorrect initial index
+### Mistake 2: Incorrect Initial Index
 
 Incorrect:
 
@@ -981,7 +982,7 @@ mp[0] = -1;
 
 The empty prefix is located before index zero.
 
-### Mistake 3: Updating the HashMap unconditionally
+### Mistake 3: Updating the HashMap Unconditionally
 
 Incorrect:
 
@@ -999,7 +1000,7 @@ if(mp.find(sum) == mp.end()) {
 }
 ```
 
-### Mistake 4: Incorrect length calculation
+### Mistake 4: Incorrect Length Calculation
 
 Incorrect:
 
@@ -1015,7 +1016,7 @@ i - mp[sum]
 
 The stored index represents the prefix immediately before the candidate subarray.
 
-### Mistake 5: Storing frequency instead of first index
+### Mistake 5: Storing Frequency Instead of First Index
 
 In LC 525, we need maximum length, not the number of valid subarrays.
 
@@ -1023,7 +1024,7 @@ Therefore, storing frequency is not the right information for this particular so
 
 ---
 
-# 16. Comparison With Other Prefix Sum Problems
+## 16. Comparison With Other Prefix Sum Problems
 
 This is one of the most important interview concepts.
 
@@ -1036,7 +1037,7 @@ Different Prefix Sum problems use the same mathematical foundation but store dif
 | LC 525 — Contiguous Array | First index | Same prefix sum | Maximum length |
 | LC 930 — Binary Subarrays With Sum | Frequency | `sum - goal` | Count subarrays |
 
-### Frequency-based approach
+### Frequency-Based Approach
 
 When the question asks us to count the number of valid subarrays:
 
@@ -1045,7 +1046,7 @@ count += mp[target];
 mp[sum]++;
 ```
 
-### First-occurrence approach
+### First-Occurrence-Based Approach
 
 When the question asks us to maximize the length:
 
@@ -1058,11 +1059,11 @@ else {
 }
 ```
 
-**Interview takeaway:** The HashMap is not tied to one fixed strategy. Its stored value depends on what the problem asks us to optimize.
+**Interview takeaway:** The HashMap is not tied to one fixed strategy. Its stored value depends on what the problem asks us to calculate.
 
 ---
 
-# 17. Important Interview Follow-up Questions
+## 17. Important Interview Follow-up Questions
 
 ### Q1. Why do we convert 0 into -1?
 
@@ -1082,7 +1083,9 @@ To correctly calculate the length of a balanced subarray beginning at index zero
 
 ### Q5. Can we use a sliding window?
 
-A standard sliding window is not directly suitable because the balance condition is not monotonic. Extending or shrinking a window does not guarantee that we move consistently toward the desired balance.
+A standard sliding window is not directly suitable because the balance condition is not monotonic.
+
+Extending or shrinking a window does not guarantee that we move consistently toward the desired balance.
 
 Prefix Sum + HashMap is the appropriate technique.
 
@@ -1092,13 +1095,13 @@ The specific transformation `0 → -1` and `1 → +1` is designed for this binar
 
 ### Q7. What is the difference between LC 525 and LC 560?
 
-LC 560 asks for the number of subarrays whose sum equals a target \(k\). We store prefix sum frequencies.
+LC 560 asks for the number of subarrays whose sum equals a target $k$. We store prefix sum frequencies.
 
 LC 525 asks for the maximum length of a zero-sum transformed subarray. We store the first index of each prefix sum.
 
 ---
 
-# 18. Pattern Recognition — When Should You Think of This Approach?
+## 18. Pattern Recognition — When Should You Use This Approach?
 
 Look for these signals in a problem:
 
@@ -1108,63 +1111,59 @@ Look for these signals in a problem:
 - A transformed subarray must have sum zero.
 - Repeated prefix sums can identify valid subarrays.
 
-### General mathematical pattern
+### General Mathematical Pattern
 
 If:
 
-\[
+$$
 P[j]=P[i]
-\]
+$$
 
 Then:
 
-\[
+$$
 P[j]-P[i]=0
-\]
+$$
 
 Therefore:
 
-\[
-SubarraySum(i+1,j)=0
-\]
+$$
+\text{Subarray Sum}(i+1,j)=0
+$$
 
 The same-prefix-sum technique can be applied to many other problems involving zero-sum subarrays.
 
 ---
 
-# 19. Final Revision Cheat Sheet
+## 19. Final Revision Cheat Sheet
 
 ### Core Transformation
 
-\[
+$$
 0\rightarrow -1
-\]
+$$
 
-\[
+$$
 1\rightarrow +1
-\]
+$$
 
 ### Core Observation
 
-\[
-\text{Equal zeros and ones}
-\iff
-\text{Subarray sum}=0
-\]
+$$
+\boxed{\text{Equal Zeros and Ones}\iff\text{Subarray Sum}=0}
+$$
 
 ### Prefix Sum Property
 
-\[
-P[j]=P[i]
-\implies
-P[j]-P[i]=0
-\]
+$$
+P[j]=P[i]\implies P[j]-P[i]=0
+$$
 
 ### Subarray Length
 
-\[
-\boxed{Length=j-i}
-\]
+$$
+\boxed{\text{Length}=j-i}
+$$
 
 ### HashMap Structure
 
@@ -1196,17 +1195,17 @@ else {
 
 ### Complexity
 
-\[
-\boxed{Time=O(n)\text{ expected}}
-\]
+$$
+\boxed{\text{Expected Time}=O(n)}
+$$
 
-\[
-\boxed{Space=O(n)}
-\]
+$$
+\boxed{\text{Space}=O(n)}
+$$
 
 ---
 
-# 20. One-Line Intuition
+## 20. One-Line Intuition
 
 **Convert every `0` into `-1` and every `1` into `+1`, then find the maximum distance between two occurrences of the same prefix sum using a HashMap.**
 
@@ -1214,8 +1213,8 @@ else {
 
 Prefix Sum + HashMap can solve different kinds of problems depending on what we store:
 
-- Frequency — to count valid subarrays.
-- First occurrence — to maximize subarray length.
-- Remainder frequency — to count subarrays divisible by a number.
+- **Frequency:** To count valid subarrays.
+- **First occurrence:** To maximize subarray length.
+- **Remainder frequency:** To count subarrays divisible by a number.
 
 **Never choose the HashMap structure blindly. First understand what the problem asks you to calculate, then decide what information must be stored.**
