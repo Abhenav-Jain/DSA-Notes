@@ -18,6 +18,7 @@
 | Recursive | Left, right, phir root visit |
 | Iterative (2-step trick) | **Root → Right → Left** karo (preorder ka mirror), phir **result reverse** |
 | Trick me push order | **Left pehle push, Right baad me** (preorder se ulta) |
+| Iterative (two stacks) | `st1` se N→R→L order me nikalo aur `st2` me daalo; `st2` pop karo = L→R→N |
 | Iterative (true one-stack) | `last` visited pointer rakho: right visit ho chuka ho tabhi root visit karo |
 | Mindset | **Bottom-up**: parent ko visit karne se pehle children ki info chahiye |
 
@@ -177,6 +178,76 @@ private:
 
 ---
 
+## 💻 4B. Solution 3: Iterative (Two Stacks)
+
+Yeh Solution 1 ka hi cousin hai. Wahan hum output vector ko `reverse()` karte the, yahan us reverse ka kaam **doosra stack** (`st2`) karta hai. Stack me daalke nikalne se order apne aap ulta ho jaata hai.
+
+```cpp
+class Solution {
+public:
+    vector<int> postorderTraversal(TreeNode* root) {
+        vector<int> postorder;
+        stack<TreeNode*> st1;
+        stack<TreeNode*> st2;
+        if (root == NULL) {
+            return postorder;
+        }
+        st1.push(root);
+        while (!st1.empty()) {
+            root = st1.top();
+            st1.pop();
+            st2.push(root);                       // st2 me N → R → L order me jaata hai
+            if (root->left != NULL) {
+                st1.push(root->left);             // left pehle push
+            }
+            if (root->right != NULL) {
+                st1.push(root->right);            // right baad me, pehle pop hoga
+            }
+        }
+        while (!st2.empty()) {                    // st2 pop = reverse = L → R → N
+            root = st2.top();
+            st2.pop();
+            postorder.push_back(root->val);
+        }
+        return postorder;
+    }
+};
+```
+
+### 🧠 Kaise kaam karta hai?
+
+| Stack | Kaam |
+|---|---|
+| `st1` | Traversal chalata hai (preorder ka mirror: N → R → L) |
+| `st2` | Nodes ko usi order me collect karta hai. Baad me pop karne pe **order ulta** hota hai |
+
+### 🔍 Dry Run (tree: `1 → (2 → (4, 5)), (3 → (null, 6))`)
+
+| Step | Pop from `st1` | Push to `st2` | `st1` (bottom → top) | `st2` (bottom → top) |
+|---|---|---|---|---|
+| init | | | `[1]` | `[]` |
+| 1 | 1 | 1 | `[2, 3]` | `[1]` |
+| 2 | 3 | 3 | `[2, 6]` | `[1, 3]` |
+| 3 | 6 | 6 | `[2]` | `[1, 3, 6]` |
+| 4 | 2 | 2 | `[4, 5]` | `[1, 3, 6, 2]` |
+| 5 | 5 | 5 | `[4]` | `[1, 3, 6, 2, 5]` |
+| 6 | 4 | 4 | `[]` | `[1, 3, 6, 2, 5, 4]` |
+
+Ab `st2` ko pop karo (top se): `4, 5, 2, 6, 3, 1` ✅
+
+### ⚖️ Solution 1 vs Solution 3
+
+| | Reverse trick (Sol 1) | Two stacks (Sol 3) |
+|---|---|---|
+| Idea | Vector me daalo, phir `reverse()` | `st2` me daalo, phir pop karo |
+| Extra space | O(n) output (zaruri hi hai) | O(n) `st2` + O(n) output |
+| Code | Chhota, simple | Thoda lamba |
+| Interview | Preferred | Concept dikhane ke liye theek, par ek stack wala better |
+
+> 💡 Dono ka logic same hai. Interview me Solution 1 likho, aur agar interviewer "stack se hi karo" bole to Solution 3 batao.
+
+---
+
 ## 🚀 5. Bonus: True One-Stack Iterative (bina reverse ke)
 
 Interviewer puch sakta hai: *"Reverse kiye bina karo."* Idea: stack ke top node ko tabhi visit karo jab uska **right subtree already visit ho chuka ho** (ya right hai hi nahi). Iske liye `last` pointer rakho.
@@ -221,6 +292,7 @@ vector<int> postorderTraversal(TreeNode* root) {
 | Recursive | O(n) | O(h) call stack |
 | Iterative (reverse trick) | O(n) | O(h) stack + O(n) output |
 | Iterative (one-stack, `last` pointer) | O(n) | O(h) |
+| Iterative (two stacks) | O(n) | O(n) (`st2` me saare nodes aate hain) |
 
 `h` = height. Balanced tree me `h = log n`, skewed me `h = n`.
 
